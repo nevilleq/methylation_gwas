@@ -1,0 +1,71 @@
+---
+title: "Exploration"
+author: "Quinton Neville, qn2119"
+date: "4/6/2020"
+output: pdf_document
+header-includes: 
+  \usepackage{graphicx}
+  \usepackage{float}
+  \usepackage{amsmath}
+---
+
+```{r setup, include = FALSE, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(TCGAbiolinks)
+#library(furrr)
+library(foreach)
+library(iterators)
+library(parallel)
+library(doParallel)
+knitr::opts_knit$set(root.dir = getwd())
+```
+
+# 1. Brain Gliomas Exploration
+
+```{r message = FALSE}
+#Stat gen query
+#query <- TCGAbiolinks::GDCquery(project = c("TCGA-GBM"),
+#                  data.category = "DNA Methylation",
+#                  legacy = FALSE,
+#                  platform = c("Illumina Human Methylation 450")
+#)
+#getManifest(query, save = TRUE)
+
+#Load Query
+query <- read_table2("./data/gdc_manifest.txt")
+index <- 1:nrow(query)
+
+
+
+#Set Up Parallel Computing
+#Cores
+nCores   <- detectCores() - 1
+registerDoParallel(nCores)
+
+#Function
+taskFun  <- GenomicDataCommons::gdcdata
+
+
+#100 X 10 = 1000 iterations
+null.return <- foreach(i = index, 
+                       .packages = c("TCGAbiolinks", "GenomicDataCommons", "tidyverse")) %dopar% {
+      
+        #Call function
+                  taskFun(query$id[i])
+
+            } 
+
+remove(null.return)
+gc()
+
+
+
+#Check out paper group 4 for methylation stuff
+#Look yp package
+#Pre-processing? Missing? Etc.
+#FIgure out how to grab disease status (and demographics? or nah, prolly not haha)
+#Glm's versus paired t-test?
+#PCA + glm for final associated measures (maybe groups of vars)
+#Conclusion
+#Furr map getting the txt files tonight
+```
